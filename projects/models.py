@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-
+from users.models import Profile
 
 class Project(models.Model):
 
@@ -8,6 +8,7 @@ class Project(models.Model):
         default=uuid.uuid4, unique=True,
         primary_key=True, editable=False
     )
+    owner = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
     title = models.CharField(max_length=100)
     cover_image = models.ImageField(null=True, blank=True, default='default.jpg')
     description = models.TextField(blank=True, null=True)
