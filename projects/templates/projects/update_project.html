@@ -1,0 +1,14 @@
+{% extends 'main.html' %}
+
+{% block content %}
+    <h1 style="text-align: center;">Update Project Item</h1>
+
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <table>
+            {{form.as_table}}
+        </table>
+        <input type="submit" value="Update">
+    </form>
+{% endblock %}
