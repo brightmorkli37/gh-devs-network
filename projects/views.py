@@ -26,13 +26,17 @@ def add_project(request):
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
-            form.instance.owner = request.user
+            form.instance.owner = request.user.profile
             # the user can be fetched this other way
             # project = form.save(commit=False)
             # project.owner = request.user
             # project.save()
             form.save()
-            return redirect('projects')
+            if request.user.is_authenticated:
+                return redirect('account')
+            else:
+                return redirect('profiles')
+            # return redirect('projects')
         else:
             form = ProjectForm()
     
@@ -50,6 +54,9 @@ def update_project(request, pk):
         form = ProjectForm(request.POST, request.FILES or None, instance=project)
         if form.is_valid():
             form.save()
+            project = form.save(commit=False)
+            project.owner = profile
+            project.save()
             messages.success(request, 'Project updated successfully')
             if request.user.is_authenticated:
                 return redirect('account')
@@ -78,6 +85,6 @@ def delete_project(request, pk):
             return redirect ('projects')
         
     
-    template_name = 'projects/delete_template.html'
+    template_name = 'delete_template.html'
     context = {'object': project}
     return render (request, template_name, context)
