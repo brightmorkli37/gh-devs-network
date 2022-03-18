@@ -7,7 +7,7 @@ class ProjectForm(ModelForm):
 
     class Meta:
         model = Project
-        exclude = ('id', 'vote_total', 'vote_ratio', 'created')
+        exclude = ('id', 'owner', 'vote_total', 'vote_ratio', 'created')
 
 
         widgets = {

@@ -1,4 +1,3 @@
-from re import template
 from django.shortcuts import render, redirect
 from users.models import Profile
 from users.forms import CustomUserCreationForm, ProfileForm
@@ -91,16 +90,6 @@ def userAccount(request):
     profile = Profile.objects.get(user=request.user)
     skills = profile.skill_set.all()
     projects = profile.project_set.all()
-
-    # if request.method == 'POST':
-    #     profile.first_name = request.POST.get('first_name')
-    #     profile.last_name = request.POST.get('last_name')
-    #     profile.email = request.POST.get('email')
-    #     profile.phone = request.POST.get('phone')
-    #     profile.description = request.POST.get('description')
-    #     profile.save()
-    #     messages.success(request, 'Profile updated succesfully')
-    #     return redirect('account')
 
     template_name = 'users/account.html'
     context = {

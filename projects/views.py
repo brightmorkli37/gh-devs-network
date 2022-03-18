@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from projects.models import Project
@@ -25,6 +26,11 @@ def add_project(request):
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
+            form.instance.owner = request.user
+            # the user can be fetched this other way
+            # project = form.save(commit=False)
+            # project.owner = request.user
+            # project.save()
             form.save()
             return redirect('projects')
         else:
@@ -36,28 +42,40 @@ def add_project(request):
 
 @login_required(login_url='login')
 def update_project(request, pk):
-    project = Project.objects.get(pk=pk)
+    profile = request.user.profile
+    project = profile.project_set.get(pk=pk)
     form = ProjectForm(instance=project)
     
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES or None, instance=project)
         if form.is_valid():
             form.save()
-            return redirect('projects')
+            messages.success(request, 'Project updated successfully')
+            if request.user.is_authenticated:
+                return redirect('account')
+            else:
+                return redirect('profiles')
+            # return redirect('projects')
         else:
+            messages.error(request, 'error occured... check input fields')
             form = ProjectForm(instance=project)
     
-    template_name = 'projects/update_project.html'
+    template_name = 'projects/project_form.html'
     context = {'form': form}
     return render (request, template_name, context)
 
 @login_required(login_url='login')
 def delete_project(request, pk):
-    project = Project.objects.get(pk=pk)
+    profile = request.user.profile
+    project = profile.project_set.get(pk=pk)
     
     if request.method == 'POST':
         project.delete()
-        return redirect ('projects')
+        messages.success(request, 'Project deleted successfully')
+        if request.user.is_authenticated:
+            return redirect('account')
+        else:
+            return redirect ('projects')
         
     
     template_name = 'projects/delete_template.html'
