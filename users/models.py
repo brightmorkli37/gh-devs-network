@@ -10,7 +10,7 @@ class Profile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     username = models.CharField(max_length=100, blank=True, null=True)
-    name = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True, verbose_name='Full Name')
     email = models.EmailField(max_length=100, blank=True, null=True)
     phone = models.CharField(max_length=100, blank=True, null=True)
     short_intro = models.CharField(max_length=100, blank=True, null=True)
@@ -19,14 +19,14 @@ class Profile(models.Model):
         upload_to='profile_pics/', blank=True, null=True, default='profile_pics/user-default.png'
     )
     address = models.CharField(max_length=100, blank=True, null=True)
-    social_twitter = models.URLField(max_length=500, blank=True, null=True)
-    social_linkedin = models.URLField(max_length=500, blank=True, null=True)
-    social_github = models.URLField(max_length=500, blank=True, null=True)
-    social_website = models.URLField(max_length=500, blank=True, null=True)
+    social_twitter = models.CharField(max_length=500, blank=True, null=True)
+    social_linkedin = models.CharField(max_length=500, blank=True, null=True)
+    social_github = models.CharField(max_length=500, blank=True, null=True)
+    social_website = models.CharField(max_length=500, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.name
+        return self.username
 
 
 
