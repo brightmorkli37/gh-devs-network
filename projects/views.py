@@ -3,13 +3,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from projects.models import Project
 from .forms import ProjectForm
+from .utils import searchProjects
 
 
 def projects(request):
-    projects = Project.objects.all()
+    projects, search_query = searchProjects(request)
     
     template_name = 'projects/projects.html'
-    context = {'projects': projects}
+    context = {'projects': projects, 'search_query': search_query}
     return render (request, template_name, context)
 
 

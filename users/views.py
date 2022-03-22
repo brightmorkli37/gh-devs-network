@@ -1,3 +1,5 @@
+import imp
+from re import search
 from django.shortcuts import render, redirect
 from users.models import Profile, Skill
 from users.forms import CustomUserCreationForm, ProfileForm, SkillForm
@@ -5,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from .utils import searchProfiles
 
 
 def loginUser(request):
@@ -60,10 +63,10 @@ def registerUser(request):
     return render(request, template_name, context)
 
 def profiles(request):
-    profiles = Profile.objects.all()
+    profiles, search_query = searchProfiles(request)
 
     template_name = 'users/profiles.html'
-    context = {'profiles': profiles}
+    context = {'profiles': profiles, 'search_query': search_query}
     return render(request, template_name, context)
 
 
