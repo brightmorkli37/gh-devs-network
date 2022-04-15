@@ -1,8 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from projects.models import Project
-from .forms import ProjectForm
+from projects.models import Project, Review
+from .forms import ProjectForm, ReviewForm
 from .utils import searchProjects, paginateProjects
 
 
@@ -21,9 +21,21 @@ def projects(request):
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, id=pk)
+    reviews = Review.objects.filter(project = project)
+    form = ReviewForm()
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            form.instance.owner = request.user.profile
+            form.instance.project = project
+            form.save()
+            project.getVoteCount
+            messages.success(request, 'Thanks for giving a feedback')
+            return redirect ('details', pk = project.id)
     
     template_name = 'projects/projects_detail.html'
-    context = {'project': project}
+    context = {'project': project, 'reviews': reviews, 'form': form}
     return render (request, template_name, context)
 
 @login_required(login_url='login')
