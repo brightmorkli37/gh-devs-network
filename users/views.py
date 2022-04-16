@@ -63,6 +63,7 @@ def registerUser(request):
     return render(request, template_name, context)
 
 def profiles(request):
+    section = 'devs'
     profiles, search_query = searchProfiles(request)
 
     custom_range, profiles = paginateProfiles(request, profiles, 6)
@@ -70,12 +71,13 @@ def profiles(request):
     template_name = 'users/profiles.html'
     context = {
         'profiles': profiles, 'search_query': search_query,
-        'custom_range': custom_range,
+        'custom_range': custom_range, 'section': section,
     }
     return render(request, template_name, context)
 
 
 def userProfile(request, pk):
+    section = 'devs'
     profile = Profile.objects.get(pk=pk)
 
     # mainSkills is the skills with description
@@ -86,7 +88,7 @@ def userProfile(request, pk):
 
     template_name = 'users/user-profile.html'
     context = {
-        'profile': profile,
+        'profile': profile, 'section': section,
         'mainSkills': mainSkills,
         'otherSkills': otherSkills,
     }
@@ -95,6 +97,7 @@ def userProfile(request, pk):
 
 @login_required(login_url='login')
 def userAccount(request):
+    section = 'account'
     profile = Profile.objects.get(user=request.user)
     skills = profile.skill_set.all()
     projects = profile.project_set.all()
@@ -102,11 +105,13 @@ def userAccount(request):
     template_name = 'users/account.html'
     context = {
         'profile': profile, 'skills': skills, 'projects': projects,
+        'section': section,
     }
     return render(request, template_name, context)
 
 @login_required(login_url='login')
 def editProfile(request):
+    section = 'account'
     profile = Profile.objects.get(user=request.user)
     form = ProfileForm(instance=profile)
     if request.method == 'POST':
@@ -120,11 +125,12 @@ def editProfile(request):
             form = ProfileForm(instance=profile)
 
     template_name = 'users/edit-profile.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def addSkill(request):
+    section = 'account'
     form = SkillForm()
     if request.method == 'POST':
         form = SkillForm(request.POST)
@@ -138,11 +144,12 @@ def addSkill(request):
             form = SkillForm()
 
     template_name = 'users/skill-form.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def updateSkill(request, pk):
+    section = 'account'
     skill = Skill.objects.get(pk=pk)
     form = SkillForm(instance=skill)
     if request.method == 'POST':
@@ -157,11 +164,12 @@ def updateSkill(request, pk):
             form = SkillForm()
 
     template_name = 'users/skill-form.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def deleteSkill(request, pk):
+    section = 'account'
     skill = Skill.objects.get(pk=pk)
 
     if request.method == 'POST':
@@ -170,5 +178,12 @@ def deleteSkill(request, pk):
         return redirect('account')
     
     template_name = 'delete_template.html'
-    context = {'object': skill}
+    context = {'object': skill, 'section': section,}
     return render (request,template_name, context)
+
+
+def inbox(request):
+    section = 'inbox'
+    template_name = 'users/inbox.html'
+    context = {'section': section,}
+    return render (request, template_name, context)

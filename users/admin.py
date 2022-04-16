@@ -7,5 +7,7 @@ admin.site.register(Skill)
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ['subject', 'is_read', 'created']
-    filter_by = ['created']
+    search_fields = ['message']
+    list_filter = ['is_read']
+    
 
