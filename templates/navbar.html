@@ -14,9 +14,10 @@
         <ul class="header__menu">
           <li class="header__menuItem {% if section == 'devs' %} btn btn--sub {% endif %}"><a href="{% url 'profiles' %}">Developers</a></li>
           <li class="header__menuItem {% if section == 'projects' %} btn btn--sub {% endif %}"><a href="{% url 'projects' %}">Projects</a></li>
-          <li class="header__menuItem {% if section == 'inbox' %} btn btn--sub {% endif %}"><a href="{% url 'inbox' %}">Inbox</a></li>
+          
           
           {% if request.user.is_authenticated %}
+          <li class="header__menuItem {% if section == 'inbox' %} btn btn--sub {% endif %}"><a href="{% url 'inbox' %}">Inbox</a></li>
           <li class="header__menuItem {% if section == 'account' %} btn btn--sub {% endif %}"><a href="{% url 'account' %}">Account</a></li>
           <li class="header__menuItem"><a href="{% url 'logout' %}" class="{% if page == 'login' %} btn btn--sub {% endif %}">Logout</a></li>
           {% else %}

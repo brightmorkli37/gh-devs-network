@@ -181,7 +181,7 @@ def deleteSkill(request, pk):
     context = {'object': skill, 'section': section,}
     return render (request,template_name, context)
 
-
+@login_required(login_url='login')
 def inbox(request):
     section = 'inbox'
     template_name = 'users/inbox.html'
