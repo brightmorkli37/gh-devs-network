@@ -1,8 +1,9 @@
 import imp
+import mailbox
 from re import search
 from django.shortcuts import render, redirect
-from users.models import Profile, Skill
-from users.forms import CustomUserCreationForm, ProfileForm, SkillForm
+from users.models import Profile, Skill, Message
+from users.forms import CustomUserCreationForm, ProfileForm, SkillForm, MessageForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -16,7 +17,7 @@ def loginUser(request):
         return redirect('profiles')
 
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username').lower()
         password = request.POST.get('password')
         try:
             user = User.objects.get(username=username)
@@ -27,7 +28,7 @@ def loginUser(request):
 
         if user is not None:
             login(request, user)
-            return redirect('profiles')
+            return redirect(request.GET['next'] if 'next' in request.GET else 'account')
         else:
             messages.error(request, 'username or password is incorrect')
 
@@ -63,6 +64,7 @@ def registerUser(request):
     return render(request, template_name, context)
 
 def profiles(request):
+    section = 'devs'
     profiles, search_query = searchProfiles(request)
 
     custom_range, profiles = paginateProfiles(request, profiles, 6)
@@ -70,12 +72,13 @@ def profiles(request):
     template_name = 'users/profiles.html'
     context = {
         'profiles': profiles, 'search_query': search_query,
-        'custom_range': custom_range,
+        'custom_range': custom_range, 'section': section,
     }
     return render(request, template_name, context)
 
 
 def userProfile(request, pk):
+    section = 'devs'
     profile = Profile.objects.get(pk=pk)
 
     # mainSkills is the skills with description
@@ -86,7 +89,7 @@ def userProfile(request, pk):
 
     template_name = 'users/user-profile.html'
     context = {
-        'profile': profile,
+        'profile': profile, 'section': section,
         'mainSkills': mainSkills,
         'otherSkills': otherSkills,
     }
@@ -95,6 +98,7 @@ def userProfile(request, pk):
 
 @login_required(login_url='login')
 def userAccount(request):
+    section = 'account'
     profile = Profile.objects.get(user=request.user)
     skills = profile.skill_set.all()
     projects = profile.project_set.all()
@@ -102,11 +106,13 @@ def userAccount(request):
     template_name = 'users/account.html'
     context = {
         'profile': profile, 'skills': skills, 'projects': projects,
+        'section': section,
     }
     return render(request, template_name, context)
 
 @login_required(login_url='login')
 def editProfile(request):
+    section = 'account'
     profile = Profile.objects.get(user=request.user)
     form = ProfileForm(instance=profile)
     if request.method == 'POST':
@@ -120,11 +126,12 @@ def editProfile(request):
             form = ProfileForm(instance=profile)
 
     template_name = 'users/edit-profile.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def addSkill(request):
+    section = 'account'
     form = SkillForm()
     if request.method == 'POST':
         form = SkillForm(request.POST)
@@ -138,11 +145,12 @@ def addSkill(request):
             form = SkillForm()
 
     template_name = 'users/skill-form.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def updateSkill(request, pk):
+    section = 'account'
     skill = Skill.objects.get(pk=pk)
     form = SkillForm(instance=skill)
     if request.method == 'POST':
@@ -157,11 +165,12 @@ def updateSkill(request, pk):
             form = SkillForm()
 
     template_name = 'users/skill-form.html'
-    context = {'form': form}
+    context = {'form': form, 'section': section,}
     return render (request,template_name, context)
 
 @login_required(login_url='login')
 def deleteSkill(request, pk):
+    section = 'account'
     skill = Skill.objects.get(pk=pk)
 
     if request.method == 'POST':
@@ -170,5 +179,69 @@ def deleteSkill(request, pk):
         return redirect('account')
     
     template_name = 'delete_template.html'
-    context = {'object': skill}
+    context = {'object': skill, 'section': section,}
+    return render (request,template_name, context)
+
+@login_required(login_url='login')
+def inbox(request):
+    section = 'inbox'
+    profile = request.user.profile
+    inboxMessages = profile.messages.all()
+    unreadMessages = inboxMessages.filter(is_read=False).count()
+    template_name = 'users/inbox.html'
+    context = {
+        'section': section, 'inboxMessages': inboxMessages,
+        'unreadMessages': unreadMessages,
+    }
+    return render (request, template_name, context)
+
+@login_required(login_url='login')
+def readMessage(request, pk):
+    section = 'inbox'
+    profile = request.user.profile
+
+    # this approach ensures you get the specific users msgs
+    message = profile.messages.get(pk=pk)
+    # message = Message.objects.get(pk=pk)
+
+    if message.is_read == False:
+        message.is_read = True
+        message.save()
+    
+    template_name = 'users/message.html'
+    context = {'message': message, 'section': section,}
+    return render (request, template_name, context)
+
+
+# @login_required(login_url='login')
+def sendMessage(request, pk):
+    # section = 'inbox'
+    recipient = Profile.objects.get(pk=pk)
+    form = MessageForm()
+
+    try:
+        sender = request.user.profile
+    except:
+        sender = None
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = sender
+            message.recipient = recipient
+
+            if sender:
+                message.name = sender.name
+                message.email = sender.email
+
+            message.save()
+            messages.success(request, 'Message sent succesfully')
+            return redirect('user-profile', pk=recipient.id)
+        else:
+            messages.error(request, 'Message not sent... check input fields')
+            form = MessageForm()
+
+    template_name = 'users/message_form.html'
+    context = {'form': form, 'recipient': recipient,}
     return render (request,template_name, context)
