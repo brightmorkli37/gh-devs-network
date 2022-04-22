@@ -1,8 +1,9 @@
 import imp
+import mailbox
 from re import search
 from django.shortcuts import render, redirect
-from users.models import Profile, Skill
-from users.forms import CustomUserCreationForm, ProfileForm, SkillForm
+from users.models import Profile, Skill, Message
+from users.forms import CustomUserCreationForm, ProfileForm, SkillForm, MessageForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -184,6 +185,63 @@ def deleteSkill(request, pk):
 @login_required(login_url='login')
 def inbox(request):
     section = 'inbox'
+    profile = request.user.profile
+    inboxMessages = profile.messages.all()
+    unreadMessages = inboxMessages.filter(is_read=False).count()
     template_name = 'users/inbox.html'
-    context = {'section': section,}
+    context = {
+        'section': section, 'inboxMessages': inboxMessages,
+        'unreadMessages': unreadMessages,
+    }
     return render (request, template_name, context)
+
+@login_required(login_url='login')
+def readMessage(request, pk):
+    section = 'inbox'
+    profile = request.user.profile
+
+    # this approach ensures you get the specific users msgs
+    message = profile.messages.get(pk=pk)
+    # message = Message.objects.get(pk=pk)
+
+    if message.is_read == False:
+        message.is_read = True
+        message.save()
+    
+    template_name = 'users/message.html'
+    context = {'message': message, 'section': section,}
+    return render (request, template_name, context)
+
+
+# @login_required(login_url='login')
+def sendMessage(request, pk):
+    # section = 'inbox'
+    recipient = Profile.objects.get(pk=pk)
+    form = MessageForm()
+
+    try:
+        sender = request.user.profile
+    except:
+        sender = None
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = sender
+            message.recipient = recipient
+
+            if sender:
+                message.name = sender.name
+                message.email = sender.email
+
+            message.save()
+            messages.success(request, 'Message sent succesfully')
+            return redirect('user-profile', pk=recipient.id)
+        else:
+            messages.error(request, 'Message not sent... check input fields')
+            form = MessageForm()
+
+    template_name = 'users/message_form.html'
+    context = {'form': form, 'recipient': recipient,}
+    return render (request,template_name, context)

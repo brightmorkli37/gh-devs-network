@@ -55,7 +55,7 @@ class Message(models.Model):
         Profile, on_delete=models.SET_NULL, null=True, blank=True, related_name='messages'
     )
     name = models.CharField(max_length=200, blank=True, null=True)
-    email = models.EmailField(unique=True, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     subject = models.CharField(max_length=300, blank=True, null=True)
     body = models.TextField()
     is_read = models.BooleanField(default=False, null=True)
