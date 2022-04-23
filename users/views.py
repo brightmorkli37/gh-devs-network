@@ -54,7 +54,7 @@ def registerUser(request):
             user.save()
             login(request, user)
             messages.success(request, 'User created succesfully')
-            return redirect('profiles')
+            return redirect('account')
         else:
             messages.error(request, 'User not created... check input fields')
             form = CustomUserCreationForm()
