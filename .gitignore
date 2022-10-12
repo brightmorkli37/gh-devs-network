@@ -3,9 +3,9 @@
 *.pot
 *.pyc
 __pycache__/
-*/migrations/*.py
+*/migrations/00*
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# db.sqlite3
+# db.sqlite3-journal
 media
 .env
